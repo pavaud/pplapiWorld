@@ -1,5 +1,6 @@
 import json
 import math
+import matplotlib.pyplot as plt
 
 class Agent:
 
@@ -9,6 +10,7 @@ class Agent:
             setattr(self, attr_name, attr_value)
 
 class Position:
+    
     def __init__(self, longitude_degrees, latitude_degrees):
         self.latitude_degrees = latitude_degrees
         self.longitude_degrees = longitude_degrees
@@ -103,9 +105,45 @@ class Zone:
                 cls.ZONES.append(zone)
 
 
+class BaseGraph:
+    
+    def __init__(self):
+        self.title = "Your graph title"
+        self.x_label = "X-axis label"
+        self.y_label = "X-axis label"
+        self.show_grid = True
 
+    def show(self, zones):
+        x_values, y_values = self.xy_values(zones)
+        plt.plot(x_values, y_values, '.')
+        plt.xlabel(self.x_label)
+        plt.ylabel(self.y_label)
+        plt.title(self.title)
+        plt.grid(self.show_grid)
+        plt.show()
+
+    def xy_values(self, zones):
+        raise NotImplementedError
+        x_values = [zone.population_density() for zone in zones]
+        y_values = [zone.average_agreeableness() for zone in zones]
+        return x_values, y_values
+
+class AgreeablenessGraph(BaseGraph):
+
+    def __init__(self):
+        super().__init__()
+        self.title = "Nice people live in the countryside"
+        self.x_label = "population density"
+        self.y_label = "agreeableness"
+        
+    def xy_values(self, zones):
+        x_values = [zone.population_density() for zone in zones]
+        y_values = [zone.average_agreeableness() for zone in zones]
+        return x_values, y_values
+        
 
 def main():
+    
     for agent_attributes in json.load(open("agents-100k.json")):
         latitude = agent_attributes.pop("latitude")
         longitude = agent_attributes.pop("longitude")
@@ -113,7 +151,10 @@ def main():
         agent = Agent(position, **agent_attributes)
         zone = Zone.find_zone_that_contains(position)
         zone.add_inhabitant(agent)
-        print(zone.average_agreeableness())
+        # print(zone.average_agreeableness())
+    
+    agreeableness_graph = AgreeablenessGraph()
+    agreeableness_graph.show(Zone.ZONES)
         
 
 main()
